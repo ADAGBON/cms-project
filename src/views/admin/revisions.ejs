@@ -1,0 +1,34 @@
+<%- include('_top') %>
+<p><a href="/admin/posts/<%= post._id %>/edit">← Back to editor</a></p>
+<div class="rev-layout">
+  <section class="card card--flush">
+    <ul class="rev-list">
+      <% revisions.forEach(r => { %>
+        <li class="<%= selected && String(selected._id) === String(r._id) ? 'active' : '' %>">
+          <a href="?r=<%= r._id %>">
+            <strong>v<%= r.version %></strong><% if (r.version === post.version) { %> <span class="pill pill--published">current</span><% } %>
+            <span class="muted small"><%= r.editedBy ? r.editedBy.name : '—' %> · <%= new Date(r.createdAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) %></span>
+            <% if (r.note) { %><span class="small"><%= r.note %></span><% } %>
+          </a>
+        </li>
+      <% }) %>
+    </ul>
+  </section>
+  <% if (selected) { %>
+  <section class="card">
+    <div class="card__head">
+      <h2>Version <%= selected.version %>: <%= selected.title %></h2>
+      <% if (selected.version !== post.version) { %>
+        <form method="post" action="/admin/posts/<%= post._id %>/revisions/<%= selected._id %>/restore">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn" type="submit" data-confirm="Restore version <%= selected.version %>? Your current text is kept in history.">Restore this version</button>
+        </form>
+      <% } %>
+    </div>
+    <% if (selected.excerpt) { %><p class="lede-sm"><%= selected.excerpt %></p><% } %>
+    <div class="prose prose--admin"><%- selected.content %></div>
+    <% if (selected.tags && selected.tags.length) { %><p class="muted small">Tags: <%= selected.tags.join(', ') %></p><% } %>
+  </section>
+  <% } %>
+</div>
+<%- include('_bottom') %>

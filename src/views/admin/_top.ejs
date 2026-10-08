@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="csrf-token" content="<%= csrfToken %>">
+  <title><%= title %> · <%= siteName %> admin</title>
+  <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <% if (typeof useEditor !== 'undefined' && useEditor) { %>
+    <link rel="stylesheet" href="/vendor/quill/quill.snow.css">
+    <script src="/vendor/quill/quill.js" defer></script>
+    <script src="/static/js/editor.js" defer></script>
+  <% } %>
+  <link rel="stylesheet" href="/static/css/admin.css">
+  <script src="/static/js/admin.js" defer></script>
+</head>
+<body class="admin">
+<% if (currentUser) { %>
+<div class="shell">
+  <aside class="side" id="side">
+    <a class="side__brand" href="/admin"><span class="mark" aria-hidden="true">P</span><%= siteName %></a>
+    <nav class="side__nav" aria-label="Admin">
+      <% const link = (href, label, match) => `<a href="${href}" class="${(match ? path.startsWith(href) : path === '/admin' || path === '/admin/') ? 'active' : ''}"${(match ? path.startsWith(href) : path === '/admin' || path === '/admin/') ? ' aria-current="page"' : ''}>${label}</a>`; %>
+      <%- link('/admin', 'Dashboard', null) %>
+      <%- link('/admin/posts', 'Posts', '/posts') %>
+      <% if (currentUser.can('manageMedia')) { %><%- link('/admin/media', 'Media', '/media') %><% } %>
+      <% if (currentUser.can('manageTaxonomy')) { %><%- link('/admin/categories', 'Categories', '/categories') %><% } %>
+      <% if (currentUser.can('moderate')) { %><%- link('/admin/comments', 'Comments', '/comments') %><% } %>
+      <% if (currentUser.can('manageUsers')) { %><%- link('/admin/users', 'Users', '/users') %><% } %>
+      <%- link('/admin/profile', 'Profile', '/profile') %>
+    </nav>
+    <div class="side__foot">
+      <p class="who"><strong><%= currentUser.name %></strong><span class="role role--<%= currentUser.role %>"><%= currentUser.role %></span></p>
+      <a href="/" class="muted">View site ↗</a>
+      <form method="post" action="/admin/logout"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="linkbtn" type="submit">Sign out</button></form>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" type="button" aria-controls="side" aria-expanded="false">Menu</button>
+      <h1 class="topbar__title"><%= title %></h1>
+      <a class="btn" href="/admin/posts/new">New post</a>
+    </header>
+    <div class="content">
+      <% if (flash) { %><div class="notice notice--<%= flash.type %>" role="status"><%= flash.message %></div><% } %>
+      <% if (typeof error !== 'undefined' && error) { %><div class="notice notice--error" role="alert"><%= error %></div><% } %>
+<% } else { %>
+<div class="auth">
+<% } %>

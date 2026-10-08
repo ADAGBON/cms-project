@@ -1,0 +1,29 @@
+<%- include('_top') %>
+<div class="cols cols--wide-left">
+  <section class="card card--flush">
+    <table class="table">
+      <thead><tr><th>Name</th><th class="hide-sm">Description</th><th class="num">Posts</th><th><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>
+        <% categories.forEach(c => { %>
+          <tr>
+            <td><a class="strong" href="/category/<%= c.slug %>" target="_blank" rel="noopener"><%= c.name %></a><div class="muted small">/category/<%= c.slug %></div></td>
+            <td class="hide-sm muted"><%= c.description %></td>
+            <td class="num"><%= c.count %></td>
+            <td class="actions">
+              <form method="post" action="/admin/categories/<%= c._id %>/delete"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="linkbtn danger" data-confirm="Delete “<%= c.name %>”? Its posts become uncategorised.">Delete</button></form>
+            </td>
+          </tr>
+        <% }) %>
+        <% if (!categories.length) { %><tr><td colspan="4" class="muted">No categories yet.</td></tr><% } %>
+      </tbody>
+    </table>
+  </section>
+  <form class="card" method="post" action="/admin/categories">
+    <h2>Add category</h2>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label>Name<input name="name" required maxlength="60"></label>
+    <label>Description<textarea name="description" rows="3" maxlength="300"></textarea></label>
+    <button class="btn" type="submit">Add category</button>
+  </form>
+</div>
+<%- include('_bottom') %>

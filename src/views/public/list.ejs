@@ -1,0 +1,46 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <% if (heading) { %>
+    <header class="page-head">
+      <h1><%= heading %></h1>
+      <% if (intro) { %><p class="lede"><%= intro %></p><% } %>
+    </header>
+  <% } else { %>
+    <header class="page-head page-head--home">
+      <p class="eyebrow">The <%= siteName %> journal</p>
+      <h1><%= siteTagline %></h1>
+    </header>
+  <% } %>
+
+  <% if (featured) { const p = featured; %>
+    <article class="feature">
+      <div class="feature__text">
+        <% if (p.category) { %><a class="kicker" href="/category/<%= p.category.slug %>"><%= p.category.name %></a><% } %>
+        <h2 class="feature__title"><a href="/post/<%= p.slug %>"><%= p.title %></a></h2>
+        <p class="lede"><%= p.excerpt %></p>
+        <p class="meta"><%= p.author ? p.author.name : '' %> · <%= formatDate(p.publishedAt) %> · <%= p.readingMinutes %> min read</p>
+      </div>
+      <% if (p.coverImage) { %><img class="feature__img" src="<%= p.coverImage %>" alt=""><% } else { %><div class="feature__art" aria-hidden="true"><span><%= p.title.charAt(0) %></span></div><% } %>
+    </article>
+  <% } %>
+
+  <div class="layout">
+    <section aria-label="Posts">
+      <% if (!posts.length && !featured) { %>
+        <p class="empty">Nothing here yet.</p>
+      <% } %>
+      <div class="grid">
+        <% posts.forEach(p => { %><%- include('../partials/card', { p }) %><% }) %>
+      </div>
+      <% if (pages > 1) { %>
+        <nav class="pager" aria-label="Pagination">
+          <% if (page > 1) { %><a class="btn btn--ghost" href="?page=<%= page - 1 %>">← Newer</a><% } else { %><span></span><% } %>
+          <span class="muted">Page <%= page %> of <%= pages %></span>
+          <% if (page < pages) { %><a class="btn btn--ghost" href="?page=<%= page + 1 %>">Older →</a><% } %>
+        </nav>
+      <% } %>
+    </section>
+    <%- include('../partials/sidebar') %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

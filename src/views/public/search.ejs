@@ -1,0 +1,16 @@
+<%- include('../partials/head') %>
+<div class="wrap">
+  <header class="page-head">
+    <h1><%= q ? `Results for “${q}”` : 'Search' %></h1>
+    <% if (q) { %><p class="lede"><%= posts.length %> post<%= posts.length === 1 ? '' : 's' %> found</p><% } %>
+  </header>
+  <div class="layout">
+    <section>
+      <% if (!q) { %><p class="empty">Type something in the search box above.</p><% } %>
+      <% if (q && !posts.length) { %><p class="empty">No posts match that search. Try a broader word.</p><% } %>
+      <div class="grid"><% posts.forEach(p => { %><%- include('../partials/card', { p }) %><% }) %></div>
+    </section>
+    <%- include('../partials/sidebar') %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

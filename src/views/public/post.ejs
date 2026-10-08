@@ -1,0 +1,63 @@
+<%- include('../partials/head') %>
+<% if (preview) { %>
+  <div class="preview-bar">Preview — this post is <strong><%= statusLabels[post.status] %></strong> and not visible to readers. <a href="/admin/posts/<%= post._id %>/edit">Back to editor</a></div>
+<% } %>
+<article class="article" lang="<%= post.lang %>">
+  <header class="article__head wrap wrap--narrow">
+    <% if (post.category) { %><a class="kicker" href="/category/<%= post.category.slug %>"><%= post.category.name %></a><% } %>
+    <h1 class="article__title"><%= post.title %></h1>
+    <% if (post.excerpt) { %><p class="lede"><%= post.excerpt %></p><% } %>
+    <p class="meta">By <%= post.author.name %> · <%= formatDate(post.publishedAt || post.publishAt || post.updatedAt) %> · <%= post.readingMinutes %> min read</p>
+  </header>
+  <% if (post.coverImage) { %><figure class="article__cover wrap"><img src="<%= post.coverImage %>" alt=""></figure><% } %>
+  <div class="prose wrap wrap--narrow">
+    <%- post.content %>
+  </div>
+  <footer class="wrap wrap--narrow article__foot">
+    <% if (post.tags.length) { %><p class="tags"><% post.tags.forEach(t => { %><a class="tag" href="/tag/<%= t %>">#<%= t %></a><% }) %></p><% } %>
+    <% if (post.author.bio) { %><div class="byline"><span class="avatar" aria-hidden="true"><%= post.author.name.charAt(0) %></span><div><strong><%= post.author.name %></strong><p class="muted"><%= post.author.bio %></p></div></div><% } %>
+  </footer>
+</article>
+
+<% if (relatedPosts.length) { %>
+<section class="wrap related" aria-labelledby="related-h">
+  <h2 id="related-h" class="section-title">Read next</h2>
+  <div class="grid grid--3">
+    <% relatedPosts.forEach(p => { %>
+      <article class="card card--mini">
+        <div class="card__body">
+          <h3 class="card__title"><a href="/post/<%= p.slug %>"><%= p.title %></a></h3>
+          <p class="meta"><%= p.readingMinutes %> min read<% if (p.sharedTags) { %> · <%= p.sharedTags %> shared tag<%= p.sharedTags > 1 ? 's' : '' %><% } %></p>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+</section>
+<% } %>
+
+<section class="wrap wrap--narrow comments" id="comments" aria-labelledby="comments-h">
+  <h2 id="comments-h" class="section-title">Comments (<%= comments.length %>)</h2>
+  <% comments.forEach(c => { %>
+    <div class="comment">
+      <p class="comment__who"><strong><%= c.name %></strong> <span class="muted">· <%= formatDate(c.createdAt) %></span></p>
+      <p><%= c.body %></p>
+    </div>
+  <% }) %>
+  <% if (commentSent) { %><p class="notice notice--success">Thanks — your comment is waiting for moderation.</p><% } %>
+  <% if (flash) { %><p class="notice notice--<%= flash.type %>"><%= flash.message %></p><% } %>
+  <% if (post.allowComments && !preview) { %>
+    <form class="comment-form" method="post" action="/post/<%= post.slug %>/comments">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+      <div class="row">
+        <label>Name<input name="name" required maxlength="60" autocomplete="name"></label>
+        <label>Email <span class="muted">(not shown)</span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+      </div>
+      <label>Comment<textarea name="body" required maxlength="2000" rows="4"></textarea></label>
+      <button class="btn" type="submit">Post comment</button>
+    </form>
+  <% } else if (!post.allowComments) { %>
+    <p class="muted">Comments are closed on this post.</p>
+  <% } %>
+</section>
+<%- include('../partials/foot') %>

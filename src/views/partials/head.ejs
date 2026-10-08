@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="<%= (typeof meta !== 'undefined' && meta.lang) || 'en' %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title === siteName ? siteName : `${title} · ${siteName}` %></title>
+  <% const m = typeof meta !== 'undefined' ? meta : {}; %>
+  <meta name="description" content="<%= m.description || siteTagline %>">
+  <% if (m.robots) { %><meta name="robots" content="<%= m.robots %>"><% } %>
+  <link rel="canonical" href="<%= baseUrl + path %>">
+  <meta property="og:site_name" content="<%= siteName %>">
+  <meta property="og:title" content="<%= title %>">
+  <meta property="og:description" content="<%= m.description || siteTagline %>">
+  <meta property="og:type" content="<%= m.type || 'website' %>">
+  <meta property="og:url" content="<%= baseUrl + path %>">
+  <% if (m.image) { %><meta property="og:image" content="<%= m.image.startsWith('/') ? baseUrl + m.image : m.image %>"><% } %>
+  <meta name="twitter:card" content="<%= m.image ? 'summary_large_image' : 'summary' %>">
+  <meta name="theme-color" content="#1f3a34">
+  <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="alternate" type="application/rss+xml" title="<%= siteName %>" href="/feed.xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/site.css">
+  <script src="/static/js/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="masthead">
+  <div class="wrap masthead__inner">
+    <a class="brand" href="/"><span class="brand__mark" aria-hidden="true">P</span><%= siteName %></a>
+    <form class="search" action="/search" method="get" role="search">
+      <label class="sr-only" for="site-search">Search posts</label>
+      <input id="site-search" type="search" name="q" placeholder="Search posts" value="<%= typeof q !== 'undefined' ? q : '' %>">
+    </form>
+    <nav class="masthead__nav" aria-label="Main">
+      <a href="/">Latest</a>
+      <a href="/api">API</a>
+      <% if (currentUser) { %><a class="btn btn--small" href="/admin">Dashboard</a><% } else { %><a class="btn btn--small btn--ghost" href="/admin/login">Sign in</a><% } %>
+    </nav>
+  </div>
+</header>
+<main id="main">

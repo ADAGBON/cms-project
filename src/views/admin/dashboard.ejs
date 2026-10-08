@@ -1,0 +1,55 @@
+<%- include('_top') %>
+<section class="stats">
+  <a class="stat" href="/admin/posts?status=published"><span class="stat__n"><%= counts.published %></span><span class="stat__l">Published</span></a>
+  <a class="stat" href="/admin/posts?status=draft"><span class="stat__n"><%= counts.draft %></span><span class="stat__l">Drafts</span></a>
+  <a class="stat" href="/admin/posts?status=in_review"><span class="stat__n"><%= counts.in_review %></span><span class="stat__l">In review</span></a>
+  <a class="stat" href="/admin/posts?status=scheduled"><span class="stat__n"><%= counts.scheduled %></span><span class="stat__l">Scheduled</span></a>
+  <% if (currentUser.can('moderate')) { %><a class="stat <%= pendingComments ? 'stat--alert' : '' %>" href="/admin/comments"><span class="stat__n"><%= pendingComments %></span><span class="stat__l">Comments to moderate</span></a><% } %>
+</section>
+
+<div class="cols">
+  <section class="card">
+    <div class="card__head"><h2>Views, last 14 days</h2><span class="muted"><%= totalViews.toLocaleString() %> total</span></div>
+    <% const max = Math.max(1, ...series.map(s => s.n)); const W = 560, H = 160, bw = W / series.length; %>
+    <svg class="chart" viewBox="0 0 <%= W %> <%= H + 22 %>" role="img" aria-label="Daily page views for the last 14 days">
+      <line x1="0" y1="<%= H %>" x2="<%= W %>" y2="<%= H %>" class="chart__axis"/>
+      <% series.forEach((s, i) => { const h = Math.round((s.n / max) * (H - 18)); %>
+        <g>
+          <title><%= s.day %>: <%= s.n %> views</title>
+          <rect x="<%= i * bw + 4 %>" y="<%= H - h %>" width="<%= bw - 8 %>" height="<%= h %>" rx="3" class="chart__bar"/>
+          <% if (i % 2 === 1 || i === series.length - 1) { %><text x="<%= i * bw + bw / 2 %>" y="<%= H + 16 %>" text-anchor="middle" class="chart__label"><%= s.day.slice(8) %>/<%= s.day.slice(5,7) %></text><% } %>
+        </g>
+      <% }) %>
+    </svg>
+  </section>
+
+  <section class="card">
+    <div class="card__head"><h2>Most read</h2></div>
+    <% if (!topPosts.length) { %><p class="muted">No published posts yet.</p><% } %>
+    <ol class="rank">
+      <% topPosts.forEach(p => { %><li><a href="/post/<%= p.slug %>"><%= p.title %></a><span class="muted"><%= p.views %></span></li><% }) %>
+    </ol>
+  </section>
+</div>
+
+<div class="cols">
+  <% if (currentUser.can('publish')) { %>
+  <section class="card">
+    <div class="card__head"><h2>Waiting for review</h2></div>
+    <% if (!reviewQueue.length) { %><p class="muted">Nothing waiting. Nice.</p><% } %>
+    <ul class="list">
+      <% reviewQueue.forEach(p => { %><li><a href="/admin/posts/<%= p._id %>/edit"><%= p.title %></a><span class="muted">by <%= p.author ? p.author.name : '—' %></span></li><% }) %>
+    </ul>
+  </section>
+  <% } %>
+  <section class="card">
+    <div class="card__head"><h2>Recent edits</h2></div>
+    <ul class="list">
+      <% recent.forEach(r => { %>
+        <li><span><strong><%= r.editedBy ? r.editedBy.name : 'Someone' %></strong> saved v<%= r.version %> of <a href="/admin/posts/<%= r.post._id %>/edit"><%= r.post.title %></a><% if (r.note) { %> — <em><%= r.note %></em><% } %></span><span class="muted"><%= formatDate(r.createdAt) %></span></li>
+      <% }) %>
+    </ul>
+    <p class="muted small">Cache: <%= cacheStats.entries %> entries · <%= cacheStats.hitRate %>% hit rate since start</p>
+  </section>
+</div>
+<%- include('_bottom') %>

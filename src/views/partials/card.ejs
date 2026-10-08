@@ -1,0 +1,11 @@
+<article class="card">
+  <% if (p.coverImage) { %>
+    <a class="card__img" href="/post/<%= p.slug %>" tabindex="-1" aria-hidden="true"><img src="<%= p.coverImage %>" alt="" loading="lazy"></a>
+  <% } %>
+  <div class="card__body">
+    <% if (p.category) { %><a class="kicker" href="/category/<%= p.category.slug %>"><%= p.category.name %></a><% } %>
+    <h3 class="card__title"><a href="/post/<%= p.slug %>"><%= p.title %></a></h3>
+    <p class="card__excerpt"><%= p.excerpt %></p>
+    <p class="meta"><%= p.author ? p.author.name : '' %> · <%= formatDate(p.publishedAt || p.publishAt) %> · <%= p.readingMinutes %> min read</p>
+  </div>
+</article>

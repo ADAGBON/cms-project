@@ -1,0 +1,9 @@
+{
+  "name": "Pressroom",
+  "short_name": "Pressroom",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#1f3a34",
+  "icons": [{ "src": "/static/img/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

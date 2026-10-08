@@ -1,0 +1,13 @@
+<%- include('_top') %>
+<form class="auth-card" method="post" action="/admin/setup">
+  <a class="auth-card__brand" href="/"><span class="mark" aria-hidden="true">P</span><%= siteName %></a>
+  <h1>Create the first admin</h1>
+  <p class="muted">This page only works once, while the site has no users.</p>
+  <% if (typeof error !== 'undefined' && error) { %><div class="notice notice--error" role="alert"><%= error %></div><% } %>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <label>Name<input name="name" required maxlength="80"></label>
+  <label>Email<input type="email" name="email" required autocomplete="username"></label>
+  <label>Password <span class="muted">(8+ characters)</span><input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+  <button class="btn btn--block" type="submit">Create admin</button>
+</form>
+<%- include('_bottom') %>

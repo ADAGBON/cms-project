@@ -1,0 +1,36 @@
+<%- include('_top') %>
+<div class="toolbar">
+  <nav class="tabs" aria-label="Filter by status">
+    <a href="/admin/posts" class="<%= !status ? 'active' : '' %>">All</a>
+    <% Object.entries(statusLabels).forEach(([k, v]) => { %><a href="/admin/posts?status=<%= k %>" class="<%= status === k ? 'active' : '' %>"><%= v %></a><% }) %>
+  </nav>
+  <form method="get" class="inline">
+    <% if (status) { %><input type="hidden" name="status" value="<%= status %>"><% } %>
+    <label class="sr-only" for="pq">Search titles</label>
+    <input id="pq" type="search" name="q" value="<%= q %>" placeholder="Search titles">
+  </form>
+</div>
+
+<div class="card card--flush">
+  <% if (!posts.length) { %>
+    <div class="empty-state"><p>No posts here yet.</p><a class="btn" href="/admin/posts/new">Write a post</a></div>
+  <% } else { %>
+  <table class="table">
+    <thead><tr><th>Title</th><th>Status</th><th class="hide-sm">Author</th><th class="hide-sm">Category</th><th class="hide-sm num">Views</th><th>Updated</th><th><span class="sr-only">Actions</span></th></tr></thead>
+    <tbody>
+      <% posts.forEach(p => { %>
+        <tr>
+          <td><a class="strong" href="/admin/posts/<%= p._id %>/edit"><%= p.title %></a><div class="muted small">v<%= p.version %> · /post/<%= p.slug %></div></td>
+          <td><span class="pill pill--<%= p.status %>"><%= statusLabels[p.status] %></span><% if (p.status === 'scheduled' && p.publishAt) { %><div class="muted small"><%= new Date(p.publishAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) %></div><% } %></td>
+          <td class="hide-sm"><%= p.author ? p.author.name : '—' %></td>
+          <td class="hide-sm"><%= p.category ? p.category.name : '—' %></td>
+          <td class="hide-sm num"><%= p.views %></td>
+          <td class="muted"><%= formatDate(p.updatedAt) %></td>
+          <td class="actions"><a href="/post/<%= p.slug %>" target="_blank" rel="noopener">View</a></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('_bottom') %>

@@ -1,0 +1,117 @@
+<%- include('_top', { useEditor: true }) %>
+<% const isNew = !post || !post._id; const p = post || { seo: {}, tags: [], status: 'draft', lang: 'en', allowComments: true }; const s = p.seo || {}; %>
+<form class="editor-layout" method="post" action="<%= isNew ? '/admin/posts' : `/admin/posts/${p._id}` %>" id="post-form">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="editor-main">
+    <label class="sr-only" for="title">Title</label>
+    <input class="title-input" id="title" name="title" value="<%= p.title || '' %>" placeholder="Post title" required maxlength="160" autocomplete="off">
+    <label class="field-label" for="excerpt">Summary <span class="muted">(shown on cards; leave empty to auto-generate)</span></label>
+    <textarea id="excerpt" name="excerpt" rows="2" maxlength="400"><%= p.excerpt || '' %></textarea>
+
+    <div class="editor-wrap">
+      <div id="editor" data-upload-url="/admin/media"><%- p.content || '' %></div>
+    </div>
+    <input type="hidden" name="content" id="content" value="<%= p.content || '' %>">
+    <p class="muted small" id="wordcount" aria-live="polite"></p>
+
+    <details class="card seo-card" <%= analysis && analysis.score < 80 ? 'open' : '' %>>
+      <summary>
+        <span><strong>SEO</strong> — search and social preview</span>
+        <% if (analysis) { %><span class="score score--<%= analysis.grade %>"><%= analysis.score %>/100</span><% } %>
+      </summary>
+      <div class="seo-grid">
+        <div>
+          <label>URL slug<input name="slug" value="<%= p.slug || '' %>" placeholder="auto from title" pattern="[a-z0-9-]*" maxlength="80"></label>
+          <label>Meta title <span class="muted">(30–60 chars)</span><input name="metaTitle" value="<%= s.metaTitle || '' %>" maxlength="70" data-count></label>
+          <label>Meta description <span class="muted">(70–160 chars)</span><textarea name="metaDescription" rows="3" maxlength="170" data-count><%= s.metaDescription || '' %></textarea></label>
+          <label>Focus keyword<input name="focusKeyword" value="<%= s.focusKeyword || '' %>" maxlength="60"></label>
+        </div>
+        <div>
+          <% if (analysis) { %>
+            <p class="small muted">Checked on last save:</p>
+            <ul class="checks">
+              <% analysis.checks.forEach(c => { %><li class="<%= c.pass ? 'ok' : 'no' %>"><span aria-hidden="true"><%= c.pass ? '✓' : '•' %></span> <%= c.label %><% if (c.detail) { %> <span class="muted">(<%= c.detail %>)</span><% } %></li><% }) %>
+            </ul>
+          <% } else { %>
+            <p class="muted small">Save once to get an SEO score with specific fixes.</p>
+          <% } %>
+          <div class="serp" aria-label="Search result preview">
+            <span class="serp__url"><%= baseUrl.replace(/^https?:\/\//, '') %>/post/<%= p.slug || 'your-post' %></span>
+            <span class="serp__title" data-serp-title><%= s.metaTitle || p.title || 'Your post title' %></span>
+            <span class="serp__desc" data-serp-desc><%= s.metaDescription || p.excerpt || 'Your meta description shows here.' %></span>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <aside class="editor-side">
+    <section class="card">
+      <div class="card__head"><h2>Publish</h2><span class="pill pill--<%= p.status %>"><%= statusLabels[p.status] %></span></div>
+      <% if (!isNew && p.status === 'scheduled' && p.publishAt) { %><p class="small">Goes live <strong data-localtime="<%= new Date(p.publishAt).toISOString() %>"><%= new Date(p.publishAt).toUTCString() %></strong></p><% } %>
+      <% if (!isNew && p.reviewNote) { %><p class="small"><%= p.reviewNote %></p><% } %>
+      <% const can = (t) => isNew ? (t === 'in_review' || currentUser.can('publish')) : targets.includes(t); %>
+      <div class="stack">
+        <button class="btn btn--ghost btn--block" name="action" value="" type="submit"><%= isNew ? 'Save draft' : 'Save' %></button>
+        <% if (can('in_review') && p.status !== 'in_review') { %><button class="btn btn--ghost btn--block" name="action" value="submit" type="submit">Submit for review</button><% } %>
+        <% if (can('published') && p.status !== 'published') { %><button class="btn btn--block" name="action" value="publish" type="submit">Publish now</button><% } %>
+      </div>
+      <% if (can('scheduled')) { %>
+        <div class="schedule">
+          <label class="small">Schedule for <span class="muted">(your local time)</span><input type="datetime-local" id="publishAtLocal" data-iso="<%= p.publishAt ? new Date(p.publishAt).toISOString() : '' %>"></label>
+          <input type="hidden" name="publishAt" id="publishAt" value="<%= p.publishAt ? new Date(p.publishAt).toISOString() : '' %>">
+          <button class="btn btn--ghost btn--block" name="action" value="schedule" type="submit">Schedule</button>
+        </div>
+      <% } %>
+      <div class="stack stack--tight">
+        <% if (!isNew && p.status === 'published' && can('draft')) { %><button class="linkbtn" name="action" value="unpublish" type="submit">Unpublish (back to draft)</button><% } %>
+        <% if (!isNew && p.status === 'in_review' && can('draft')) { %><button class="linkbtn" name="action" value="draft" type="submit">Send back to draft</button><% } %>
+        <% if (!isNew && can('archived') && p.status !== 'archived') { %><button class="linkbtn" name="action" value="archive" type="submit">Archive</button><% } %>
+      </div>
+      <% if (!isNew) { %>
+        <label class="small">Change note <span class="muted">(optional)</span><input name="revisionNote" maxlength="120" placeholder="e.g. fixed intro"></label>
+        <p class="small links"><a href="/post/<%= p.slug %>" target="_blank" rel="noopener"><%= p.status === 'published' ? 'View live' : 'Preview' %> ↗</a> · <a href="/admin/posts/<%= p._id %>/revisions">History (<%= revisionCount %>)</a></p>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <h2>Organise</h2>
+      <label>Category
+        <select name="category">
+          <option value="">— None —</option>
+          <% categories.forEach(c => { %><option value="<%= c._id %>" <%= String(p.category && (p.category._id || p.category)) === String(c._id) ? 'selected' : '' %>><%= c.name %></option><% }) %>
+        </select>
+      </label>
+      <label>Tags <span class="muted">(comma separated)</span><input name="tags" value="<%= Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || '') %>" placeholder="fintech, lagos"></label>
+      <label>Language
+        <select name="lang">
+          <% const names = { en: 'English', fr: 'French', yo: 'Yoruba', ha: 'Hausa', ig: 'Igbo' }; languages.forEach(l => { %><option value="<%= l %>" <%= p.lang === l ? 'selected' : '' %>><%= names[l] %></option><% }) %>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" name="featured" <%= p.featured ? 'checked' : '' %>> Feature on home page</label>
+      <label class="check"><input type="checkbox" name="allowComments" <%= p.allowComments !== false ? 'checked' : '' %>> Allow comments</label>
+      <input type="hidden" name="allowCommentsPresent" value="1">
+    </section>
+
+    <section class="card">
+      <h2>Cover image</h2>
+      <input type="hidden" name="coverImage" id="coverImage" value="<%= p.coverImage || '' %>">
+      <div class="cover-preview" id="cover-preview"><% if (p.coverImage) { %><img src="<%= p.coverImage %>" alt="Current cover"><% } else { %><span class="muted small">No cover image</span><% } %></div>
+      <% if (media.length) { %>
+        <p class="small muted">Pick from the library:</p>
+        <div class="thumbs" role="list">
+          <% media.forEach(m => { %><button type="button" class="thumb" data-cover="<%= m.url %>" role="listitem" aria-label="Use <%= m.filename %> as cover"><img src="<%= m.url %>" alt=""></button><% }) %>
+        </div>
+      <% } %>
+      <p class="small"><button type="button" class="linkbtn" data-cover="">Remove cover</button> · <a href="/admin/media" target="_blank" rel="noopener">Upload in media library ↗</a></p>
+    </section>
+
+    <% if (!isNew && (currentUser.can('deleteAny') || p.status === 'draft')) { %>
+      <button class="linkbtn danger" type="submit" form="delete-form" data-confirm="Delete this post, its history and comments? This can’t be undone.">Delete post</button>
+    <% } %>
+  </aside>
+</form>
+<% if (!isNew) { %>
+  <form id="delete-form" method="post" action="/admin/posts/<%= p._id %>/delete"><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
+<% } %>
+<%- include('_bottom') %>

@@ -1,0 +1,27 @@
+<%- include('_top') %>
+<nav class="tabs" aria-label="Filter comments">
+  <% [['pending','Pending'],['approved','Approved'],['spam','Spam']].forEach(([k, v]) => { %>
+    <a href="/admin/comments?status=<%= k %>" class="<%= status === k ? 'active' : '' %>"><%= v %> <span class="count"><%= counts[k] || 0 %></span></a>
+  <% }) %>
+</nav>
+<% if (!comments.length) { %><div class="card empty-state"><p>No <%= status %> comments.</p></div><% } %>
+<div class="stack">
+  <% comments.forEach(c => { %>
+    <article class="card comment-card">
+      <div class="card__head">
+        <p><strong><%= c.name %></strong><% if (c.email) { %> <span class="muted small">&lt;<%= c.email %>&gt;</span><% } %> on <% if (c.post) { %><a href="/post/<%= c.post.slug %>" target="_blank" rel="noopener"><%= c.post.title %></a><% } else { %><em>deleted post</em><% } %></p>
+        <span class="muted small"><%= formatDate(c.createdAt) %></span>
+      </div>
+      <p><%= c.body %></p>
+      <form method="post" action="/admin/comments/<%= c._id %>" class="row-actions">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="back" value="<%= status %>">
+        <% if (status !== 'approved') { %><button class="btn btn--small" name="action" value="approved">Approve</button><% } %>
+        <% if (status !== 'spam') { %><button class="btn btn--small btn--ghost" name="action" value="spam">Spam</button><% } %>
+        <% if (status !== 'pending') { %><button class="btn btn--small btn--ghost" name="action" value="pending">Back to pending</button><% } %>
+        <button class="linkbtn danger" name="action" value="delete" data-confirm="Delete this comment?">Delete</button>
+      </form>
+    </article>
+  <% }) %>
+</div>
+<%- include('_bottom') %>

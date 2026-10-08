@@ -1,0 +1,28 @@
+<%- include('_top') %>
+<form class="card upload" method="post" action="/admin/media?_csrf=<%= csrfToken %>" enctype="multipart/form-data">
+  <div class="upload__row">
+    <label class="grow">File <span class="muted">(JPG, PNG, GIF, WebP or PDF, up to 3 MB)</span><input type="file" name="file" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf" required></label>
+    <label class="grow">Alt text <span class="muted">(describe the image for screen readers)</span><input name="alt" maxlength="200"></label>
+    <button class="btn" type="submit">Upload</button>
+  </div>
+</form>
+
+<% if (!files.length) { %>
+  <div class="card empty-state"><p>No files yet. Upload an image to use it in posts.</p></div>
+<% } %>
+<div class="media-grid">
+  <% files.forEach(f => { %>
+    <figure class="media-item">
+      <% if (f.mimeType.startsWith('image/')) { %><img src="<%= f.url %>" alt="<%= f.alt %>" loading="lazy"><% } else { %><div class="file-icon">PDF</div><% } %>
+      <figcaption>
+        <span class="strong small"><%= f.filename %></span>
+        <span class="muted small"><%= Math.round(f.size / 1024) %> KB · <%= f.uploadedBy ? f.uploadedBy.name : '' %></span>
+        <span class="row-actions">
+          <button type="button" class="linkbtn small" data-copy="<%= f.url %>">Copy link</button>
+          <form method="post" action="/admin/media/<%= f._id %>/delete"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="linkbtn danger small" data-confirm="Delete this file? Posts using it will show a broken image.">Delete</button></form>
+        </span>
+      </figcaption>
+    </figure>
+  <% }) %>
+</div>
+<%- include('_bottom') %>

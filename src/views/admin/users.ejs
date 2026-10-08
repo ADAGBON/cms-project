@@ -1,0 +1,53 @@
+<%- include('_top') %>
+<div class="cols cols--wide-left">
+  <section class="card card--flush">
+    <table class="table">
+      <thead><tr><th>Name</th><th>Role</th><th class="hide-sm">Last sign-in</th><th><span class="sr-only">Actions</span></th></tr></thead>
+      <tbody>
+        <% users.forEach(u => { const self = String(u._id) === String(currentUser._id); %>
+          <tr class="<%= u.active ? '' : 'inactive' %>">
+            <td><span class="strong"><%= u.name %></span><% if (self) { %> <span class="muted small">(you)</span><% } %><div class="muted small"><%= u.email %><%= u.active ? '' : ' · deactivated' %></div></td>
+            <td>
+              <% if (self) { %><span class="role role--<%= u.role %>"><%= u.role %></span><% } else { %>
+              <form method="post" action="/admin/users/<%= u._id %>" class="inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <label class="sr-only" for="role-<%= u._id %>">Role for <%= u.name %></label>
+                <select id="role-<%= u._id %>" name="role" data-autosubmit><% roles.forEach(r => { %><option value="<%= r %>" <%= u.role === r ? 'selected' : '' %>><%= r %></option><% }) %></select>
+                <noscript><button class="btn btn--small">Save</button></noscript>
+              </form>
+              <% } %>
+            </td>
+            <td class="hide-sm muted"><%= u.lastLoginAt ? formatDate(u.lastLoginAt) : 'Never' %></td>
+            <td class="actions">
+              <% if (!self) { %>
+              <form method="post" action="/admin/users/<%= u._id %>"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="linkbtn <%= u.active ? 'danger' : '' %>" name="toggleActive" value="1"><%= u.active ? 'Deactivate' : 'Reactivate' %></button></form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+  <div class="stack">
+    <form class="card" method="post" action="/admin/users">
+      <h2>Add a user</h2>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <label>Name<input name="name" required maxlength="80"></label>
+      <label>Email<input type="email" name="email" required autocomplete="off"></label>
+      <label>Temporary password<input type="password" name="password" minlength="8" required autocomplete="new-password"></label>
+      <label>Role<select name="role"><% roles.forEach(r => { %><option value="<%= r %>" <%= r === 'author' ? 'selected' : '' %>><%= r %></option><% }) %></select></label>
+      <button class="btn" type="submit">Add user</button>
+    </form>
+    <section class="card">
+      <h2>What each role can do</h2>
+      <table class="table table--compact">
+        <thead><tr><th>Permission</th><% roles.forEach(r => { %><th><%= r %></th><% }) %></tr></thead>
+        <tbody>
+          <% const labels = { publish: 'Publish & schedule', editAny: 'Edit anyone’s posts', deleteAny: 'Delete posts', moderate: 'Moderate comments', manageTaxonomy: 'Manage categories', manageUsers: 'Manage users', manageMedia: 'Upload media', viewAnalytics: 'See all analytics' }; %>
+          <% Object.entries(labels).forEach(([k, v]) => { %><tr><td><%= v %></td><% roles.forEach(r => { %><td class="center"><%= permissions[r].includes(k) ? '✓' : '—' %></td><% }) %></tr><% }) %>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</div>
+<%- include('_bottom') %>

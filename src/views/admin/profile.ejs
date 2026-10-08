@@ -1,0 +1,14 @@
+<%- include('_top') %>
+<form class="card narrow" method="post" action="/admin/profile">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <label>Name<input name="name" value="<%= currentUser.name %>" required maxlength="80"></label>
+  <label>Email<input value="<%= currentUser.email %>" disabled></label>
+  <label>Bio <span class="muted">(shown under your posts)</span><textarea name="bio" rows="3" maxlength="400"><%= currentUser.bio %></textarea></label>
+  <fieldset>
+    <legend>Change password</legend>
+    <label>Current password<input type="password" name="currentPassword" autocomplete="current-password"></label>
+    <label>New password <span class="muted">(8+ characters)</span><input type="password" name="newPassword" minlength="8" autocomplete="new-password"></label>
+  </fieldset>
+  <button class="btn" type="submit">Save profile</button>
+</form>
+<%- include('_bottom') %>
