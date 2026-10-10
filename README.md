@@ -2,7 +2,7 @@
 
 A content management system for teams that write, review and publish together. Built with **Node.js, Express and MongoDB**, server-rendered for speed and SEO, with a read-only **headless JSON API** for any other front end.
 
-**Live app:** _add your Render URL here_ · **Admin:** `/admin`
+**Live app: https://pressroom-cms.onrender.com/    **Admin:** `/admin`
 
 ![Public home page](docs/screenshots/home.png)
 
